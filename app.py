@@ -10,7 +10,7 @@ else:
     from camera import Camera
 
 # Raspberry Pi camera module (requires picamera package)
-# from camera_pi import Camera
+from camera_pi import Camera
 
 app = Flask(__name__)
 
@@ -29,12 +29,20 @@ def gen(camera):
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
+def img(camera):
+    """Video streaming generator function."""
+    yield(camera.get_frame())
+
 @app.route('/video_feed')
 def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen(Camera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/image.jpg')
+def image_feed():
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    return Response(img(Camera()), mimetype='image/jpeg')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', threaded=True)
+    app.run(host='0.0.0.0', port='5001', threaded=True)
